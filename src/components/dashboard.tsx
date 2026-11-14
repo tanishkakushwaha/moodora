@@ -1,116 +1,23 @@
 'use client';
 import Link from 'next/link';
-import { ArrowRight, ArrowUpRight, BookOpen, Flame, Heart, Smile, PenLine, Sun, ShieldCheck } from 'lucide-react';
+import { BookHeart, Heart, PenLine, Smile, Sparkles, ChartNoAxesCombined, ArrowRight } from 'lucide-react';
 import { useApp } from './providers';
-import { Botanical } from './brand';
 import { MoodPicker } from './mood-picker';
-import { TrendChart } from './charts';
-import { MoodCalendar } from './calendar';
-import { QuoteCard } from './quotes';
+import { EntryCard } from './diary';
 import { dailyQuote, findMood } from '@/lib/catalog';
 import { localDate, getStreak } from '@/lib/utils';
-import { EntryCard } from './diary';
+import { GentlePause, WritingPrompt } from './gentle-pause';
+import { Kitten, TulipGarden } from './pastel-art';
 export function Dashboard() {
-    const { data } = useApp();
-    if (!data)
-        return null;
-    const hour = new Date().getHours();
-    const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-    const today = data.moods.find(m => m.date === localDate());
-    const mood = findMood(today?.mood);
-    const streak = getStreak(data.moods.map(m => m.date));
-    return <div id="main-content" className="page-enter">
-  <div className="page-heading">
-    <div>
-      <div className="eyebrow greeting-date">
-        <Sun size={14}/>
-        {new Date().toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })}
-      </div>
-      <h1>{greeting}, {data.user.name.split(' ')[0]} <span className="heading-flower">✿</span></h1>
-      <p>Welcome to your little corner of calm. Let’s make space for you.</p>
-    </div>
-    <Link href="/diary/new" className="button button-primary"><PenLine size={16}/> Write in my diary</Link>
-  </div>
-  <section className="welcome-banner">
-    <div>
-      <span className="eyebrow">YOUR FEELINGS DESERVE A PLACE</span>
-      <h2>You don’t have to have it all<br />figured out to <em>grow.</em></h2>
-      <p>A moment to reflect. A little room to breathe.<br />This is your space to simply be.</p>
-      <Link className="banner-link" href="/mood-tracker">Let’s check in <ArrowRight size={17}/></Link>
-    </div>
-    <div className="banner-art">
-      <span className="art-orbit orbit-one"/>
-      <span className="art-orbit orbit-two"/>
-      <Botanical />
-      <span className="art-caption">grow at your own pace</span>
-    </div>
-  </section>
-  <div className="stats-grid">
-    <Link href="/mood-tracker" className="stat-card">
-      <span className="stat-icon peach">{mood ? <span>{mood.emoji}</span> : <Smile size={20}/>}</span>
-      <div>
-        <span>Today’s mood</span>
-        <b>{mood?.label || 'A fresh start'}</b>
-        <small>{mood ? 'Thanks for checking in' : 'How’s your heart today?'}</small>
-      </div>
-      <ArrowUpRight size={16}/>
-    </Link>
-    <Link href="/diary" className="stat-card">
-      <span className="stat-icon lavender"><BookOpen size={20}/></span>
-      <div>
-        <span>Pages of your story</span>
-        <b>
-          {data.entries.length}
-          <em>diary entries</em>
-        </b>
-        <small>Every word is a little release</small>
-      </div>
-      <ArrowUpRight size={16}/>
-    </Link>
-    <Link href="/insights" className="stat-card">
-      <span className="stat-icon rose"><Flame size={20}/></span>
-      <div>
-        <span>Showing up for yourself</span>
-        <b>
-          {streak}
-          <em>day {streak === 1 ? 'streak' : 'streak'}</em>
-        </b>
-        <small>{streak ? 'Keep your little ritual going' : 'Your next chapter starts today'}</small>
-      </div>
-      <ArrowUpRight size={16}/>
-    </Link>
-  </div>
-  <section className="card dashboard-moods"><MoodPicker /></section>
-  <div className="dashboard-columns">
-    <div className="dashboard-main-column">
-      <section className="card"><TrendChart /></section>
-      <section className="recent-section">
-        <div className="section-heading">
-          <div>
-            <h2>Little moments, kept close</h2>
-            <p>A few pages from your story.</p>
-          </div>
-          <Link className="text-button" href="/diary">View my diary <ArrowRight size={14}/></Link>
-        </div>
-        {data.entries.length ? <div className="recent-entries">{data.entries.slice(0, 2).map(e => <EntryCard key={e.id} entry={e} compact/>)}</div> : <div className="card empty-diary">
-          <span className="empty-icon"><BookOpen size={25}/></span>
-          <div>
-            <h3>Your story starts with a single page.</h3>
-            <p>A thought, a feeling, a tiny moment worth keeping.</p>
-            <Link className="text-button" href="/diary/new">Write my first entry <ArrowRight size={14}/></Link>
-          </div>
-        </div>}
-      </section>
-    </div>
-    <div className="dashboard-side-column">
-      <QuoteCard quote={dailyQuote()} featured/>
-      <MoodCalendar compact/>
-    </div>
-  </div>
-  <div className="reassurance">
-    <ShieldCheck size={15}/>
-    <span>Your thoughts are personal. Your space is private.</span>
-    <span>A little more you, every day. <Heart size={12}/></span>
-  </div>
-    </div>;
+ const {data}=useApp(); if(!data)return null;
+ const today=data.moods.find(mood=>mood.date===localDate()); const feeling=findMood(today?.mood); const quote=dailyQuote();
+ return <div id="main-content" className="m-dashboard page-enter">
+  <div className="page-heading"><div className="p-home-greeting"><span className="eyebrow greeting-date"><Sparkles size={12}/>{new Date().toLocaleDateString('en',{weekday:'long',month:'long',day:'numeric'})}</span><h1>Hello, {data.user.name.split(' ')[0]}! ♡</h1><p>Take a deep breath. This little moment is yours.</p><Kitten/></div></div>
+  <div className="p-welcome-row"><section className="p-today"><div><span className="eyebrow">TODAY’S MOOD ♡</span><h2>{feeling?.label || 'How’s your heart?'}</h2><p>{today?.note || (feeling?'A little feeling, gently held.':'Every feeling has a place here.')}</p><Link href="/mood-tracker" className="text-button">{feeling?'Change mood':'Choose a mood'} <ArrowRight size={14}/></Link></div><span className="p-today-emoji" aria-label={feeling?.label || 'A little sunshine'}>{feeling?.emoji || '🌷'}</span><TulipGarden/></section><aside className="p-quote-note"><Heart size={28}/><p>“{quote.text}”</p><span>— {quote.author}</span></aside></div>
+  <h2 className="p-actions-heading">Quick actions ✨</h2><nav className="p-quick-actions" aria-label="Quick actions"><Link href="/diary/new"><BookHeart/>Write diary</Link><Link href="/mood-tracker"><Smile/>Track mood</Link><Link href="/self-care"><Heart/>Self-care</Link><Link href="/insights"><ChartNoAxesCombined/>View insights</Link></nav>
+  <div className="p-daily-layout"><section className="card m-checkin-card"><span className="m-card-tab">A LITTLE CHECK-IN</span><MoodPicker/></section><GentlePause/></div>
+  <div className="m-tiny-stats"><span><BookHeart size={17}/><b>{data.entries.length}</b> diary {data.entries.length===1?'entry':'entries'}</span><span><Heart size={16}/><b>{getStreak(data.moods.map(m=>m.date))}</b> days of checking in</span><Link href="/calendar">My mood calendar <ArrowRight size={14}/></Link></div>
+  <section className="p-recent"><div className="section-heading"><h2>My little diary ♡</h2><Link href="/diary" className="text-button">All entries <ArrowRight size={14}/></Link></div>{data.entries.length?<div className="recent-entries">{data.entries.slice(0,2).map(entry=><EntryCard key={entry.id} entry={entry} compact/>)}</div>:<div className="card m-first-page"><BookHeart size={32}/><h3>A page for your thoughts.</h3><p>Your dreams, your little joys, or just anything.</p><Link href="/diary/new" className="text-button">Write my first entry <PenLine size={15}/></Link></div>}</section><WritingPrompt/>
+  <p className="m-dashboard-footer"><Heart size={13}/> Feel · Reflect · Bloom ♡</p>
+ </div>;
 }

@@ -52,7 +52,7 @@ export function ThemeProvider({ children }: {
     useEffect(() => {
         const media = window.matchMedia('(prefers-color-scheme: dark)');
         const apply = () => {
-            const theme = localStorage.getItem('bloom-theme') || 'system';
+            const theme = localStorage.getItem('moodora-pastel-theme') || 'light';
             document.documentElement.classList.toggle('dark', theme === 'dark' || (theme === 'system' && media.matches));
         };
         apply();
@@ -65,7 +65,7 @@ export function ThemeProvider({ children }: {
     </MotionConfig>;
 }
 export function setTheme(theme: string) {
-    localStorage.setItem('bloom-theme', theme);
+    localStorage.setItem('moodora-pastel-theme', theme);
     document.documentElement.classList.toggle('dark', theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches));
 }
 export function AppProvider({ children }: {
@@ -98,9 +98,9 @@ export function AppProvider({ children }: {
         void refresh();
     }, [refresh]);
     useEffect(() => {
-        if (data?.user.theme)
-            setTheme(data.user.theme);
-    }, [data?.user.theme]);
+        if (data?.user.id)
+            setTheme(localStorage.getItem('moodora-pastel-theme') || 'light');
+    }, [data?.user.id]);
     return <Context.Provider value={{ data, loading, error, refresh }}>{children}</Context.Provider>;
 }
 export const useApp = () => useContext(Context);

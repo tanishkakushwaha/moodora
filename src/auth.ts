@@ -5,7 +5,8 @@ import { db } from '@/lib/db';
 import { loginSchema } from '@/lib/validation';
 import { verifyPassword } from '@/lib/password';
 import { rateLimit } from '@/lib/rate-limit';
-const secureSession = (process.env.AUTH_URL || '').startsWith('https://');
+import { usesSecureCookies } from '@/lib/deployment';
+const secureSession = usesSecureCookies();
 export const { handlers, auth, signIn, signOut } = NextAuth({
     cookies: { sessionToken: { name: `${secureSession ? '__Secure-' : ''}bloom.session-token`, options: { httpOnly: true, sameSite: 'lax', path: '/', secure: secureSession } } },
     session: { strategy: 'jwt', maxAge: 60 * 60 * 24 * 7 },

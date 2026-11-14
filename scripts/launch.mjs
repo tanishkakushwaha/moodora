@@ -13,13 +13,13 @@ function run(bin, args, env) {
 }
 
 try {
-  console.log(`\nBloom — Mood & Diary\nProject: ${root}\n`);
+  console.log(`\nMoodora\nProject: ${root}\n`);
   // Test before installing or changing anything. A denied socket cannot be
   // repaired by editing application files or changing database credentials.
   const port = await findPort();
   const url = `http://localhost:${port}`;
   const env = { ...process.env, AUTH_URL: url };
-  if (port !== 3000) console.log(`Port 3000 is occupied. Mood & Dairy will use ${url}; the existing app stays running.`);
+  if (port !== 3000) console.log(`Port 3000 is occupied. Moodora will use ${url}; the existing app stays running.`);
 
   run(process.execPath, ['scripts/setup.mjs'], env);
   console.log('\nChecking forms, types, passwords, and the production build…');
@@ -27,7 +27,7 @@ try {
   run('npm', ['test'], env);
   run('npm', ['run', 'build'], env);
 
-  console.log(`\nStarting your app at ${url}\nKeep this terminal open. Press Ctrl+C to stop Mood & Dairy.\n`);
+  console.log(`\nStarting your app at ${url}\nKeep this terminal open. Press Ctrl+C to stop Moodora.\n`);
   const server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', String(port)], {
     cwd: root, env, stdio: 'inherit', shell: false,
   });
@@ -48,7 +48,7 @@ try {
       if (health.app !== 'bloom-mood-diary' || health.database !== true) return;
       opened = true;
       clearInterval(readinessTimer);
-      console.log('\nBloom and PostgreSQL are responding. Checking real account and diary flows…\n');
+      console.log('\nMoodora and PostgreSQL are responding. Checking real account and diary flows…\n');
       checks = spawn(process.execPath, ['scripts/smoke.mjs'], {
         cwd: root, env: { ...env, BLOOM_SMOKE_ORIGIN: url }, stdio: 'inherit', shell: false,
       });
@@ -56,10 +56,10 @@ try {
       checks.once('exit', code => {
         if (exited) return;
         if (code !== 0) {
-          console.error(`Live integration checks failed. Mood & Dairy is running at ${url}; review the error above.`);
+          console.error(`Live integration checks failed. Moodora is running at ${url}; review the error above.`);
           return;
         }
-        console.log(`\nBloom is ready: ${url}\n`);
+        console.log(`\nMoodora is ready: ${url}\n`);
         const browser = spawn('xdg-open', [url], { stdio: 'ignore' });
         browser.on('error', () => console.log(`Open ${url} in your browser.`));
         browser.unref();
@@ -97,10 +97,10 @@ try {
 } catch (error) {
   if (error.code === 'EPERM' || error.code === 'EACCES') {
     console.error('This terminal’s policy blocks local servers. Run the launcher from your normal Linux terminal:');
-    console.error('bash "$HOME/Desktop/Mood & Dairy/scripts/launch.sh"');
+    console.error('bash "$HOME/Desktop/My Moodora/scripts/launch.sh"');
     console.error('Application code cannot change this terminal’s sandbox permissions.');
   } else {
-    console.error(`Mood & Dairy could not start: ${error.message}`);
+    console.error(`Moodora could not start: ${error.message}`);
   }
   process.exitCode = 1;
 }

@@ -70,12 +70,12 @@ export function InsightsPage() {
       <h2>You are more than<br />a chart or a number.</h2>
       <p>Your mood is a moment, not a definition. Looking back can help you notice what nourishes you, and where you might need a little more care.</p>
       <Link className="text-button" href="/diary/new">Make a little space to reflect <ArrowUpRight size={15}/></Link>
-      <small>Mood & Dairy offers reflection, not medical assessment.</small>
+      <small>Moodora offers reflection, not medical assessment.</small>
     </section>
   </div>
     </div>;
 }
-export function MoodTrackerPage() {
+export function MoodTrackerPage({ initialDate }: { initialDate?: string }) {
     const { data, refresh } = useApp();
     const [toDelete, setToDelete] = useState<string | null>(null);
     const [visible, setVisible] = useState(12);
@@ -106,7 +106,7 @@ export function MoodTrackerPage() {
     </div>
     <Link href="/calendar" className="button button-outline"><CalendarDays size={16}/> See my mood calendar</Link>
   </div>
-  <MoodPicker full/>
+  <MoodPicker full initialDate={initialDate}/>
   <div className="section-heading history-heading">
     <div>
       <h2>Your recent check-ins</h2>

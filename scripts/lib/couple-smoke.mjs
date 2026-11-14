@@ -1,0 +1,35 @@
+import assert from 'node:assert/strict';
+export async function checkCouples({a,b,anonymous,pool,entryId,moodId,emails}) {
+ const post=(agent,json,extra={})=>agent('/api/partner',{method:'POST',json,...extra});
+ assert.equal((await anonymous('/api/partner')).status,401);
+ assert.equal((await post(a,{action:'invite'},{requestOrigin:'https://untrusted.example'})).status,403);
+ assert.equal((await post(b,{action:'accept',code:'A'.repeat(32)})).status,400);
+ let invitation=await post(a,{action:'invite'});assert.equal(invitation.status,200);
+ assert.equal((await post(a,{action:'accept',code:invitation.data.code})).status,400,'Users cannot connect to themselves');
+ assert.equal((await post(a,{action:'cancel-invite'})).status,200);
+ assert.equal((await post(b,{action:'accept',code:invitation.data.code})).status,400,'Cancelled codes cannot connect');
+ invitation=await post(a,{action:'invite'});
+ const expiredFixture = await pool.query(`UPDATE "CoupleInvite" SET "expiresAt"=(NOW() AT TIME ZONE 'UTC')-INTERVAL '1 minute' WHERE "ownerId"=(SELECT id FROM "User" WHERE email=$1) RETURNING id`,[emails[0]]);
+ assert.equal(expiredFixture.rowCount,1,'The expiry fixture must update exactly one temporary invitation');
+ assert.equal((await post(b,{action:'accept',code:invitation.data.code})).status,400,'Expired codes cannot connect');
+ invitation=await post(a,{action:'invite'});
+ assert.equal((await post(b,{action:'accept',code:invitation.data.code})).status,200);
+ assert.equal((await post(b,{action:'accept',code:invitation.data.code})).status,400,'Invitation is single-use');
+ assert.equal((await post(a,{action:'invite'})).status,409,'Connected users cannot create another connection');
+ let feed=await b('/api/partner');assert.equal(feed.data.connected,true);assert.equal(feed.data.partnerEntries.length,0,'Connecting does not share diaries');assert.equal(feed.data.partnerMoods.length,0,'Connecting does not share moods');
+ assert.equal((await post(b,{action:'share',kind:'diary',id:entryId,shared:true})).status,404,'Partners cannot share or change records they do not own');
+ for(const [kind,id] of [['diary',entryId],['mood',moodId]])assert.equal((await post(a,{action:'share',kind,id,shared:true})).status,200);
+ feed=await b('/api/partner');assert.equal(feed.data.partnerEntries[0]?.id,entryId);assert.equal(feed.data.partnerMoods[0]?.id,moodId);assert.equal('email' in feed.data.partner,false);assert.ok(feed.headers.get('cache-control').includes('no-store'));
+ assert.equal((await b('/api/data')).data.entries.length,0,'Partner sharing never merges personal accounts');
+ assert.equal((await post(a,{action:'share',kind:'diary',id:entryId,shared:false})).status,200);
+ assert.equal((await b('/api/partner')).data.partnerEntries.length,0,'Unsharing removes partner access');
+ assert.equal((await post(a,{action:'share',kind:'diary',id:entryId,shared:true})).status,200);
+ assert.equal((await post(b,{action:'disconnect'})).status,200);
+ assert.equal((await a('/api/partner')).data.connected,false);
+ assert.equal((await b('/api/partner')).data.connected,false);
+ assert.equal((await a('/api/data')).data.entries[0]?.id,entryId,'Disconnect keeps the author’s diary');
+ invitation=await post(a,{action:'invite'});assert.equal((await post(b,{action:'accept',code:invitation.data.code})).status,200);
+ feed=await b('/api/partner');assert.equal(feed.data.partnerEntries.length,0,'Reconnecting never restores earlier diary shares');assert.equal(feed.data.partnerMoods.length,0,'Reconnecting never restores earlier mood shares');
+ assert.equal((await post(a,{action:'disconnect'})).status,200);
+ console.log('✓ Couple invitations, expiry, consent, sharing, owner isolation, unsharing, and disconnect');
+}

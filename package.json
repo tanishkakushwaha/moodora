@@ -1,5 +1,5 @@
 {
-  "name": "mood-and-dairy",
+  "name": "moodora",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -8,7 +8,7 @@
     "build": "prisma generate && next build --webpack",
     "start": "next start",
     "typecheck": "prisma generate && tsc --noEmit",
-    "test": "node --experimental-strip-types --test --test-isolation=none tests/domain.test.ts tests/redirect.test.mjs tests/connection.test.mjs",
+    "test": "node --experimental-strip-types --test --test-isolation=none tests/domain.test.ts tests/redirect.test.mjs tests/connection.test.mjs tests/deployment.test.ts tests/prisma-install.test.mjs tests/couples.test.ts",
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
@@ -17,7 +17,9 @@
     "db:stop": "node scripts/database.mjs stop",
     "setup": "node scripts/setup.mjs",
     "launch": "node scripts/launch.mjs",
-    "test:integration": "node scripts/integration.mjs"
+    "test:integration": "node scripts/integration.mjs",
+    "build:vercel": "node scripts/check-vercel-env.mjs && prisma generate && prisma migrate deploy && next build --webpack",
+    "check:vercel": "node scripts/check-vercel-env.mjs"
   },
   "dependencies": {
     "next": "16.4.6",
@@ -40,10 +42,10 @@
     "framer-motion": "^12.0.0",
     "recharts": "^3.0.0",
     "react-hook-form": "^7.62.0",
-    "@hookform/resolvers": "^5.2.0"
+    "@hookform/resolvers": "^5.2.0",
+    "prisma": "7.10.1"
   },
   "devDependencies": {
-    "prisma": "7.10.1",
     "typescript": "^5.9.0",
     "tailwindcss": "4.3.5",
     "@tailwindcss/postcss": "4.3.5",
@@ -53,6 +55,6 @@
     "@types/pg": "^8.15.0"
   },
   "engines": {
-    "node": ">=24.11.0"
+    "node": "24.x"
   }
 }

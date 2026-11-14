@@ -1,1 +1,1 @@
-export const APP_NAME = 'Mood & Dairy';
+export const APP_NAME = 'Moodora';

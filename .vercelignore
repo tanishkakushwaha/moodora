@@ -1,0 +1,10 @@
+.git
+.data
+.next
+node_modules
+artifacts
+.env*
+*.log
+*.tsbuildinfo
+
+fresh-app

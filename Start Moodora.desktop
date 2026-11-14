@@ -1,9 +1,9 @@
 [Desktop Entry]
 Type=Application
-Name=Start Mood & Dairy
+Name=Start Moodora
 Comment=Start your private Mood & Dairy journaling application
-Exec=bash "/home/tanishka/Desktop/Mood & Dairy/scripts/launch.sh"
-Path=/home/tanishka/Desktop/Mood & Dairy
+Exec=bash "/home/tanishka/Desktop/My Moodora/scripts/launch.sh"
+Path=/home/tanishka/Desktop/My Moodora
 Terminal=true
 Icon=accessories-text-editor
 Categories=Utility;

@@ -7,3 +7,7 @@ src/generated/
 *.tsbuildinfo
 *.log
 artifacts/
+
+.vercel/
+
+fresh-app/

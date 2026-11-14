@@ -10,7 +10,8 @@ import { ArrowRight, Eye, EyeOff, Heart, LoaderCircle, ShieldCheck } from 'lucid
 import { signupSchema, loginFormSchema } from '@/lib/validation';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Brand, Botanical } from './brand';
+import { Brand } from './brand';
+import { Bow, JournalArt } from './moodora-art';
 import { request } from './providers';
 
 type AuthFields = { name: string; email: string; password: string };
@@ -65,15 +66,15 @@ export function AuthPage({ signup = false, google = false }: { signup?: boolean;
           <span className="eyebrow">A LITTLE SPACE TO SIMPLY BE</span>
           <h1>Your feelings<br />deserve a <em>place.</em></h1>
           <p>For the days you bloom.<br />And the days you just need to be.</p>
-          <Botanical />
+          <JournalArt />
         </div>
         <div className="auth-art-footer"><Heart size={14} /> Grow gently. At your own pace.</div>
       </aside>
       <section className="auth-form-panel">
-        <Link href="/" className="auth-home">← Back to Mood & Dairy</Link>
+        <Link href="/" className="auth-home">← Back to Moodora</Link>
         <div className="auth-form-wrap">
-          <span className="auth-flower">✿</span>
-          <h1>{signup ? 'Your next chapter starts here.' : 'Welcome back to your space.'}</h1>
+          <Bow className="m-auth-bow"/>
+          <h1>{signup ? 'Your little space awaits.' : 'Welcome home.'}</h1>
           <p>{signup ? 'A little more self-care. A little more you.' : 'Take a breath. Make yourself at home.'}</p>
           {google && <>
             <Button className="w-full google-button" variant="outline" disabled={isSubmitting} onClick={() => void signIn('google', { callbackUrl: '/dashboard' })}>
@@ -111,10 +112,10 @@ export function AuthPage({ signup = false, google = false }: { signup?: boolean;
             {signup && <small className="password-hint">A longer password helps keep your little world private.</small>}
             {serverError && <div className="form-error" role="alert">{serverError}</div>}
             <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? <><LoaderCircle className="spin" size={17} /><span>{signup ? 'Creating your space…' : 'Signing in…'}</span></> : <>{signup ? 'Start my journey' : 'Come on in'} <ArrowRight size={16} /></>}
+              {isSubmitting ? <><LoaderCircle className="spin" size={17} /><span>{signup ? 'Creating your space…' : 'Signing in…'}</span></> : <>{signup ? 'Create my cozy corner' : 'Log in to my space'} <ArrowRight size={16} /></>}
             </Button>
           </form>
-          <p className="auth-switch">{signup ? 'Already have a little space here?' : 'New to Mood & Dairy?'} <Link href={signup ? '/login' : '/signup'}>{signup ? 'Log in' : 'Start your journey'}</Link></p>
+          <p className="auth-switch">{signup ? 'Already have a little space here?' : 'New to Moodora?'} <Link href={signup ? '/login' : '/signup'}>{signup ? 'Log in' : 'Start your journey'}</Link></p>
           <div className="auth-security"><ShieldCheck size={15} /> A private space. Just for you.</div>
           {signup && <p className="auth-legal">By joining, you agree to our <Link href="/terms">Terms</Link> and <Link href="/privacy">Privacy Policy</Link>.</p>}
         </div>

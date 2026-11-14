@@ -7,7 +7,7 @@ import { randomBytes } from 'node:crypto';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const [major, minor] = process.versions.node.split('.').map(Number);
 if (major < 24 || (major === 24 && minor < 11)) {
-  console.error('Mood & Dairy needs Node.js 24.11 or newer. This computer already has Node 24.19 under ~/.nvm.');
+  console.error('Moodora needs Node.js 24.11 or newer. This computer already has Node 24.19 under ~/.nvm.');
   process.exit(1);
 }
 
@@ -29,7 +29,7 @@ if (!existsSync(resolve(root, '.env'))) {
   ].join('\n'), { mode: 0o600 });
 }
 
-console.log('\n[1/3] Installing Mood & Dairy dependencies, including charts, motion, and forms…');
+console.log('\n[1/3] Installing Moodora dependencies, including charts, motion, and forms…');
 console.log('Existing environment settings and personal data will be preserved.');
 run('npm', ['install', '--no-audit', '--no-fund', '--fetch-retries=1', '--fetch-timeout=20000']);
 console.log('\n[2/3] Starting the project’s PostgreSQL database…');

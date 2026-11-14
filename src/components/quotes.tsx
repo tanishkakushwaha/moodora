@@ -38,7 +38,7 @@ export function QuoteCard({ quote, featured = false }: {
     async function share() {
         try {
             if (navigator.share)
-                await navigator.share({ title: 'A little inspiration from Mood & Dairy', text });
+                await navigator.share({ title: 'A little inspiration from Moodora', text });
             else
                 await copy();
         }

@@ -68,9 +68,9 @@ done < <(git ls-files -z)
 
 if ! git diff --cached --quiet; then
   if git rev-parse --verify HEAD >/dev/null 2>&1; then
-    git commit -m "Update Mood & Dairy"
+    git commit -m "Update Moodora"
   else
-    git commit -m "Initial commit: Mood & Dairy"
+    git commit -m "Initial commit: Moodora"
   fi
 fi
 

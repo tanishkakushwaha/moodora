@@ -59,7 +59,7 @@ export function MoodCalendar({ compact = false }: {
       <p>{record.note || 'Sometimes a feeling says it all.'}</p>
     </div> : <div className="empty-small">
       <p>No mood logged for this day.</p>
-      <Link className="text-button" href="/mood-tracker">Log a mood <ArrowUpRight size={15}/></Link>
+      <Link className="text-button" href={`/mood-tracker?date=${selected}`}>Log a mood <ArrowUpRight size={15}/></Link>
     </div>}
     <h3 className="detail-subheading"><BookOpen size={17}/> Diary entries</h3>
     {entries.length ? entries.map(e => <Link key={e.id} className="date-entry" href={`/diary/${e.id}`}>

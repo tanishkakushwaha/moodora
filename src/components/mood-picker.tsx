@@ -1,112 +1,69 @@
 'use client';
+
 import { useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { moods } from '@/lib/catalog';
+import { Check, LoaderCircle } from 'lucide-react';
+import { toast } from 'sonner';
+import { moods, findMood } from '@/lib/catalog';
 import { localDate } from '@/lib/utils';
-import { useApp, request, notifyError } from './providers';
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from './ui/dialog';
+import { dateSchema } from '@/lib/validation';
+import { request, useApp } from './providers';
 import { Button } from './ui/button';
 import { Input, Textarea } from './ui/input';
-import { Check, ArrowRight, Heart, LoaderCircle } from 'lucide-react';
-import { toast } from 'sonner';
-export function MoodChoices({ value, onChange }: {
-    value: string;
-    onChange: (mood: string) => void;
-}) {
-    const reducedMotion = useReducedMotion();
-    return <div className="mood-choices" role="group" aria-label="Choose your mood">{moods.map(m => <motion.button whileHover={reducedMotion ? undefined : { y: -3, scale: 1.02 }} whileTap={reducedMotion ? undefined : { scale: 0.97 }} type="button" key={m.id} onClick={() => onChange(m.id)} aria-pressed={value === m.id} className={`mood-choice ${value === m.id ? 'selected' : ''}`} style={{ '--mood-bg': m.background, '--mood-color': m.color } as React.CSSProperties}>
-    <span className="mood-emoji">{m.emoji}</span>
-    <span>{m.label}</span>
-    {value === m.id && <Check className="mood-check" size={12}/>}
-  </motion.button>)}</div>;
+
+export function MoodChoices({ value, onChange, disabled = false }: { value: string; onChange: (value: string) => void; disabled?: boolean }) {
+  const reduceMotion = useReducedMotion();
+  return <div className="mood-choices" role="group" aria-label="Choose your mood">{moods.map(mood => (
+    <motion.button key={mood.id} type="button" disabled={disabled} aria-pressed={value === mood.id} whileHover={reduceMotion ? undefined : { y: -2 }} whileTap={reduceMotion ? undefined : { scale: 0.97 }} className={`mood-choice ${value === mood.id ? 'selected' : ''}`} style={{ '--mood-bg': mood.background, '--mood-color': mood.color } as React.CSSProperties} onClick={() => onChange(mood.id)}>
+      <span className="mood-emoji">{mood.emoji}</span><span>{mood.label}</span>{value === mood.id && <Check className="mood-check" size={13} />}
+    </motion.button>
+  ))}</div>;
 }
-export function MoodPicker({ full = false }: {
-    full?: boolean;
-}) {
-    const { data, refresh } = useApp();
-    const today = localDate();
-    const current = data?.moods.find(m => m.date === today);
-    const [selected, setSelected] = useState(current?.mood || '');
-    const [note, setNote] = useState(current?.note || '');
-    const [date, setDate] = useState(today);
-    const [open, setOpen] = useState(false);
-    const [busy, setBusy] = useState(false);
-    const onDate = (date: string) => {
-        setDate(date);
-        const record = data?.moods.find(m => m.date === date);
-        setSelected(record?.mood || '');
-        setNote(record?.note || '');
-    };
-    async function save() {
-        if (!selected) {
-            toast.error('Pick a feeling to get started.');
-            return;
-        }
-        setBusy(true);
-        try {
-            await request('/api/moods', 'POST', { date, mood: selected, note });
-            await refresh();
-            toast.success('A little check-in, a little more self-awareness. Mood saved.');
-            setOpen(false);
-        }
-        catch (e) {
-            notifyError(e);
-        }
-        finally {
-            setBusy(false);
-        }
-    }
-    const fields = <>
-  <MoodChoices value={selected} onChange={setSelected}/>
-  <label className="field-label" htmlFor={full ? 'mood-note-full' : 'mood-note'}>Want to put it into words? <span>(optional)</span></label>
-  <Textarea id={full ? 'mood-note-full' : 'mood-note'} placeholder="What’s on your mind? There’s no right or wrong answer…" value={note} onChange={e => setNote(e.target.value)} maxLength={500} rows={3}/>
-  <div className="form-meta">
-    <span>{note.length}/500</span>
-    <span><Heart size={12}/> Every feeling is welcome here.</span>
-  </div>
-    </>;
-    if (full)
-        return <section className="card mood-full">
-  <div className="section-heading">
-    <div>
-      <span className="eyebrow">PAUSE. BREATHE. CHECK IN.</span>
-      <h2>How are you feeling?</h2>
-    </div>
-    <Input type="date" aria-label="Mood date" value={date} max={today} onChange={e => onDate(e.target.value)} className="date-input"/>
-  </div>
-  <p className="muted">Some days are sunshine, some are a little cloudy. All of them belong.</p>
-  {fields}
-  <Button disabled={busy || !selected} onClick={() => void save()}>
-    {busy ? <LoaderCircle className="spin" size={16}/> : <Check size={16}/>}
-    {data?.moods.some(m => m.date === date) ? 'Update my check-in' : 'Save my check-in'}
-  </Button>
-        </section>;
-    return <>
-  <div className="section-heading">
-    <div>
-      <h2>How’s your heart today?</h2>
-      <p>A small check-in can make a big difference.</p>
-    </div>
-    <span className="soft-badge">DAILY CHECK-IN</span>
-  </div>
-  <MoodChoices value={current?.mood || selected} onChange={m => {
-        setSelected(m);
-        setDate(today);
-        setNote(current?.note || '');
-        setOpen(true);
-    }}/>
-  <div className="mood-footer">
-    <span>{current ? <><Check size={14}/> You checked in today. Tap a mood to update.</> : <>Your feelings matter. Give them a little space.</>}</span>
-    <button className="text-button" onClick={() => setOpen(true)}>
-      {current ? 'Edit check-in' : 'Add a little note'}
-      <ArrowRight size={14}/>
-    </button>
-  </div>
-  <Dialog open={open} onOpenChange={setOpen}><DialogContent>
-      <DialogTitle className="dialog-title">A moment to check in</DialogTitle>
-      <DialogDescription className="muted">Meet yourself exactly where you are today.</DialogDescription>
-      {fields}
-      <Button className="w-full" disabled={busy || !selected} onClick={() => void save()}>{busy ? <LoaderCircle className="spin" size={16}/> : <Heart size={16}/>}Save my mood</Button>
-    </DialogContent></Dialog>
-    </>;
+
+export function MoodPicker({ full = false, initialDate }: { full?: boolean; initialDate?: string }) {
+  const { data, refresh } = useApp();
+  const today = localDate();
+  const parsedDate = dateSchema.safeParse(initialDate);
+  const startingDate = parsedDate.success && parsedDate.data <= today ? parsedDate.data : today;
+  const [date, setDate] = useState(startingDate);
+  const current = data?.moods.find(mood => mood.date === date);
+  const [selected, setSelected] = useState(current?.mood || '');
+  const [note, setNote] = useState(current?.note || '');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const changed = selected !== current?.mood || note.trim() !== (current?.note || '');
+  const saved = !!current && !changed;
+
+  function chooseDate(value: string) {
+    setDate(value);
+    const previous = data?.moods.find(mood => mood.date === value);
+    setSelected(previous?.mood || '');
+    setNote(previous?.note || '');
+    setError('');
+  }
+  async function save(event: React.FormEvent) {
+    event.preventDefault();
+    if (!selected || busy) return;
+    setBusy(true);
+    setError('');
+    try {
+      await request('/api/moods', 'POST', { date, mood: selected, note: note.trim() });
+      setNote(note.trim());
+      await refresh();
+      toast.success('Mood saved.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not save your mood. Try again.';
+      setError(message);
+      toast.error(message);
+    } finally { setBusy(false); }
+  }
+  return (
+    <form className={full ? 'card mood-full simple-mood-form' : 'simple-mood-form'} onSubmit={save}>
+      <div className="section-heading"><div><h2>How are you feeling{date === today ? ' today' : ''}?</h2><p>Choose a mood, then save it.</p></div>{full && <Input className="date-input" type="date" aria-label="Mood date" value={date} max={today} disabled={busy} onChange={event => chooseDate(event.target.value)} />}</div>
+      <MoodChoices value={selected} onChange={setSelected} disabled={busy} />
+      <details className="simple-note"><summary>{note ? 'Edit note' : 'Add a note'} <span>(optional)</span></summary><label className="field-label" htmlFor={full ? 'mood-note-page' : 'mood-note-home'}>What’s on your mind?</label><Textarea id={full ? 'mood-note-page' : 'mood-note-home'} rows={2} maxLength={500} disabled={busy} placeholder="A few words about your day…" value={note} onChange={event => setNote(event.target.value)} /></details>
+      {error && <p className="form-error" role="alert">{error}</p>}
+      <div className="simple-save-row"><p role="status">{saved ? `${findMood(current.mood)?.emoji} ${findMood(current.mood)?.label} saved` : selected ? `${findMood(selected)?.label} selected` : 'No mood selected yet'}</p><Button type="submit" disabled={busy || !selected || saved}>{busy ? <LoaderCircle className="spin" size={17} /> : <Check size={17} />}{busy ? 'Saving…' : saved ? 'Saved' : current ? 'Update mood' : 'Save mood'}</Button></div>
+    </form>
+  );
 }

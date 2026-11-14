@@ -76,7 +76,7 @@ export function ProfilePage() {
 }
 export function SettingsPage() {
     const { data, refresh } = useApp();
-    const [theme, setSelected] = useState(data?.user.theme || 'system');
+    const [theme, setSelected] = useState(typeof window === 'undefined' ? 'light' : localStorage.getItem('moodora-pastel-theme') || 'light');
     const [themeBusy, setThemeBusy] = useState(false);
     const [current, setCurrent] = useState('');
     const [password, setPassword] = useState('');

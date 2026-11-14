@@ -18,6 +18,8 @@ model User {
   moods Mood[]
   entries DiaryEntry[]
   favorites FavoriteQuote[]
+  coupleMembership CoupleMember?
+  coupleInvite CoupleInvite?
 }
 model Mood {
   id String @id @default(cuid())
@@ -26,10 +28,13 @@ model Mood {
   date String @db.VarChar(10)
   mood String
   note String @default("") @db.VarChar(500)
+  sharedCoupleId String?
+  sharedCouple Couple? @relation("SharedMoods", fields: [sharedCoupleId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@unique([userId, date])
   @@index([userId, date])
+  @@index([sharedCoupleId])
 }
 model DiaryEntry {
   id String @id @default(cuid())
@@ -40,9 +45,12 @@ model DiaryEntry {
   date String @db.VarChar(10)
   mood String?
   tags String[] @default([])
+  sharedCoupleId String?
+  sharedCouple Couple? @relation("SharedDiary", fields: [sharedCoupleId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([userId, date])
+  @@index([sharedCoupleId])
 }
 model FavoriteQuote {
   id String @id @default(cuid())
@@ -56,4 +64,27 @@ model RateLimit {
   key String @id
   hits Int @default(1)
   resetAt DateTime
+}
+
+model Couple {
+  id String @id @default(cuid())
+  createdAt DateTime @default(now())
+  members CoupleMember[]
+  sharedMoods Mood[] @relation("SharedMoods")
+  sharedDiary DiaryEntry[] @relation("SharedDiary")
+}
+model CoupleMember {
+  userId String @id
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  coupleId String
+  couple Couple @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  joinedAt DateTime @default(now())
+  @@index([coupleId])
+}
+model CoupleInvite {
+  id String @id @default(cuid())
+  ownerId String @unique
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  tokenHash String @unique
+  expiresAt DateTime
 }

@@ -1,6 +1,7 @@
 import { auth } from '@/auth';
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
+import { trustedOrigins } from '@/lib/deployment';
 export class ApiError extends Error {
     constructor(message: string, public status = 400) {
         super(message);
@@ -14,8 +15,7 @@ export async function requireUser() {
 }
 export function checkOrigin(request: Request) {
     const origin = request.headers.get('origin');
-    const expected = new URL(process.env.AUTH_URL || request.url).origin;
-    if (origin !== expected)
+    if (!origin || !trustedOrigins(request.url).includes(origin))
         throw new ApiError('This request could not be verified. Refresh and try again.', 403);
     if (!request.headers.get('content-type')?.includes('application/json'))
         throw new ApiError('Send JSON data.', 415);

@@ -1,4 +1,4 @@
-// Reuse a running local Mood & Dairy, or own a temporary Next.js server for the test.
+// Reuse a running local Moodora, or own a temporary Next.js server for the test.
 // Never stop a server that was already running before this command.
 import { existsSync } from 'node:fs';
 import { spawn, spawnSync } from 'node:child_process';
@@ -66,7 +66,7 @@ try {
     if (!running) {
       const env = { ...process.env, AUTH_URL: origin };
       if (!existsSync(resolve(root, '.next/BUILD_ID'))) run('npm', ['run', 'build'], env);
-      console.log(`No running Mood & Dairy found. Starting a temporary app server at ${origin}…`);
+      console.log(`No running Moodora found. Starting a temporary app server at ${origin}…`);
       ownedServer = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', String(new URL(origin).port || 80)], {
         cwd: root, env, stdio: 'inherit', shell: false,
       });
@@ -80,16 +80,16 @@ try {
         try { if ((await probeBloom(origin))?.healthy) { ready = true; break; } } catch { /* wait for startup */ }
         await new Promise(resolveWait => setTimeout(resolveWait, 300));
       }
-      if (!ready) throw new Error('Mood & Dairy did not become ready within 45 seconds. See the server output above.');
+      if (!ready) throw new Error('Moodora did not become ready within 45 seconds. See the server output above.');
     } else if (!(await probeBloom(origin, 5000))?.healthy) {
-      throw new Error(`Mood & Dairy at ${origin} is running, but PostgreSQL is unhealthy. See database setup output above.`);
+      throw new Error(`Moodora at ${origin} is running, but PostgreSQL is unhealthy. See database setup output above.`);
     }
   }
   if (interrupted) throw new Error('Integration checks were interrupted.');
   process.exitCode = await runChecks(origin);
 } catch (error) {
   if (['EPERM', 'EACCES'].includes(error.code)) {
-    console.error(describeFetchError(error, 'LISTEN', 'local Mood & Dairy test server'));
+    console.error(describeFetchError(error, 'LISTEN', 'local Moodora test server'));
     console.error('Run npm run test:integration from your normal Linux terminal.');
   } else {
     console.error(`Could not run integration checks: ${error.message}`);

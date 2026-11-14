@@ -1,6 +1,7 @@
 // Real local HTTP/database integration checks. Temporary users are deleted in
 // finally; no shared demo account or journal content is left behind.
 import assert from 'node:assert/strict';
+import { checkCouples } from './lib/couple-smoke.mjs';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -81,14 +82,14 @@ let attemptedSignup = false;
 try {
   const health = await anonymous('/api/health');
   assert.equal(health.status, 200, 'The database must be healthy');
-  assert.equal(health.data.app, 'bloom-mood-diary', 'This port must belong to Mood & Dairy');
+  assert.equal(health.data.app, 'bloom-mood-diary', 'This port must belong to Moodora');
   assert.equal((await anonymous('/api/data')).status, 401, 'Private records require authentication');
   const dashboard = await anonymous('/dashboard');
   assertLoginRedirect(dashboard, origin);
 
   for (const [index, agent] of [a, b].entries()) {
     attemptedSignup = true;
-    const signup = await agent('/api/register', { method: 'POST', json: { name: `Mood & Dairy smoke ${index}`, email: emails[index], password } });
+    const signup = await agent('/api/register', { method: 'POST', json: { name: `Moodora smoke ${index}`, email: emails[index], password } });
     assert.equal(signup.status, 201, 'Account signup must succeed');
     await login(agent, emails[index], password);
   }
@@ -124,6 +125,7 @@ try {
   assert.equal((await a('/api/moods', { method: 'POST', json: { date: '2026-02-31', mood: 'happy' } })).status, 400, 'Impossible dates must be rejected');
   assert.equal((await a('/api/moods', { method: 'POST', requestOrigin: 'https://untrusted.example', json: { date: today, mood: 'sad' } })).status, 403, 'Cross-origin writes must be rejected');
   console.log('✓ Daily mood upsert, privacy, validation, and origin protection');
+  await checkCouples({ a, b, anonymous, pool, entryId: id, moodId: data.data.moods[0].id, emails });
 
   for (let i = 0; i < 2; i++) assert.equal((await a('/api/favorites', { method: 'POST', json: { quoteId: 'q1', saved: true } })).status, 200);
   data = await a('/api/data');
@@ -161,7 +163,8 @@ try {
       console.log('No temporary test accounts were created.');
     } else {
     const rows = await pool.query('SELECT id FROM "User" WHERE email = ANY($1::text[])', [emails]);
-    const keys = [...emails.flatMap(email => [`signup:${email}`, `login:${email}`]), ...rows.rows.map(user => `password:${user.id}`)];
+    const keys = [...emails.flatMap(email => [`signup:${email}`, `login:${email}`]), ...rows.rows.flatMap(user => [`password:${user.id}`, `couple:${user.id}`])];
+    await pool.query('DELETE FROM "Couple" WHERE id IN (SELECT "coupleId" FROM "CoupleMember" WHERE "userId" = ANY($1::text[]))', [rows.rows.map(user => user.id)]);
     await pool.query('DELETE FROM "User" WHERE email = ANY($1::text[])', [emails]);
     await pool.query('DELETE FROM "RateLimit" WHERE key = ANY($1::text[])', [keys]);
     console.log('Temporary test accounts and records removed.');
