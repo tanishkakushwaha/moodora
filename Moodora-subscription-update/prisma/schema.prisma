@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+datasource db {
+  provider = "postgresql"
+}
+model User {
+  id String @id @default(cuid())
+  name String
+  email String @unique
+  passwordHash String?
+  image String?
+  theme String @default("system")
+  sessionVersion Int @default(0)
+  stripeCustomerId String? @unique
+  stripeCheckoutId String?
+  reminderEnabled Boolean @default(false)
+  reminderTime String @default("20:00") @db.VarChar(5)
+  reminderTimezone String @default("Asia/Kolkata")
+  subscriptions Subscription[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  moods Mood[]
+  entries DiaryEntry[]
+  favorites FavoriteQuote[]
+  coupleMembership CoupleMember?
+  coupleInvite CoupleInvite?
+}
+model Subscription {
+  id String @id
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status String
+  qualifies Boolean @default(false)
+  currentPeriodEnd DateTime?
+  cancelAtPeriodEnd Boolean @default(false)
+  stripePriceId String?
+  planId String @default("legacy")
+  billingInterval String?
+  unitAmount Int?
+  currency String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([userId, status])
+}
+model StripeWebhookEvent {
+  id String @id
+  type String
+  processedAt DateTime @default(now())
+}
+model Mood {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date String @db.VarChar(10)
+  mood String
+  note String @default("") @db.VarChar(500)
+  sharedCoupleId String?
+  sharedCouple Couple? @relation("SharedMoods", fields: [sharedCoupleId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([userId, date])
+  @@index([userId, date])
+  @@index([sharedCoupleId])
+}
+model DiaryEntry {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title String @db.VarChar(150)
+  content String @db.Text
+  date String @db.VarChar(10)
+  mood String?
+  tags String[] @default([])
+  sharedCoupleId String?
+  sharedCouple Couple? @relation("SharedDiary", fields: [sharedCoupleId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([userId, date])
+  @@index([sharedCoupleId])
+}
+model FavoriteQuote {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quoteId String
+  createdAt DateTime @default(now())
+  @@unique([userId, quoteId])
+}
+model RateLimit {
+  key String @id
+  hits Int @default(1)
+  resetAt DateTime
+}
+
+model Couple {
+  id String @id @default(cuid())
+  createdAt DateTime @default(now())
+  members CoupleMember[]
+  sharedMoods Mood[] @relation("SharedMoods")
+  sharedDiary DiaryEntry[] @relation("SharedDiary")
+}
+model CoupleMember {
+  userId String @id
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  coupleId String
+  couple Couple @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  joinedAt DateTime @default(now())
+  @@index([coupleId])
+}
+model CoupleInvite {
+  id String @id @default(cuid())
+  ownerId String @unique
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  tokenHash String @unique
+  expiresAt DateTime
+}

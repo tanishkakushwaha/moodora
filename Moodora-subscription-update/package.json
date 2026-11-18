@@ -1,0 +1,60 @@
+{
+  "name": "moodora",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "prisma generate && next build --webpack",
+    "start": "next start",
+    "typecheck": "prisma generate && tsc --noEmit",
+    "test": "node --experimental-strip-types --test --test-isolation=none tests/domain.test.ts tests/redirect.test.mjs tests/connection.test.mjs tests/deployment.test.ts tests/prisma-install.test.mjs tests/couples.test.ts tests/features.test.ts tests/subscriptions.test.ts",
+    "postinstall": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:studio": "prisma studio",
+    "db:start": "node scripts/database.mjs start",
+    "db:stop": "node scripts/database.mjs stop",
+    "setup": "node scripts/setup.mjs",
+    "launch": "node scripts/launch.mjs",
+    "test:integration": "node scripts/integration.mjs",
+    "build:vercel": "node scripts/check-vercel-env.mjs && prisma generate && prisma migrate deploy && next build --webpack",
+    "check:vercel": "node scripts/check-vercel-env.mjs"
+  },
+  "dependencies": {
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "next-auth": "5.0.0-beta.32",
+    "@prisma/client": "7.10.1",
+    "@prisma/adapter-pg": "7.10.1",
+    "pg": "8.23.1",
+    "zod": "4.6.7",
+    "@radix-ui/react-dialog": "1.3.1",
+    "@radix-ui/react-slot": "1.5.0",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "tailwind-merge": "3.7.0",
+    "lucide-react": "0.468.0",
+    "sonner": "2.0.8",
+    "server-only": "0.0.1",
+    "dotenv": "^17.2.0",
+    "framer-motion": "^12.0.0",
+    "recharts": "^3.0.0",
+    "react-hook-form": "^7.62.0",
+    "@hookform/resolvers": "^5.2.0",
+    "prisma": "7.10.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0",
+    "tailwindcss": "4.3.5",
+    "@tailwindcss/postcss": "4.3.5",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/pg": "^8.15.0"
+  },
+  "engines": {
+    "node": "24.x"
+  }
+}
