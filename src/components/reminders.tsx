@@ -23,7 +23,7 @@ export function ReminderSettings() {
     } catch (error) { setError(error instanceof Error ? error.message : 'Could not save your reminder.'); }
     finally { setBusy(false); }
   }
-  return <section className="card feature-card" aria-labelledby="reminders-heading">
+  return <section id="daily-reminders" className="card feature-card" aria-labelledby="reminders-heading">
     <span className="eyebrow"><Bell size={15}/> A LITTLE MOMENT FOR YOU</span>
     <h2 id="reminders-heading">Daily reminders</h2>
     <p className="muted">A gentle nudge to track your mood. Reminders appear inside Moodora when it is open, after your chosen time.</p>

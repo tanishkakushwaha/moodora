@@ -22,16 +22,9 @@ export function Dashboard() {
     <p>{data.membership.premium ? 'Your weekly mood report is ready to explore. Take a moment to notice your patterns.' : 'Discover weekly mood reports with Premium, or make time for yourself with a daily reminder.'}</p>
    </div>
    <div className="feature-actions">
-    <Button asChild><Link href={data.membership.premium ? '/reports' : '/membership'}>{data.membership.premium ? 'View weekly report' : 'Explore Premium'} <ArrowRight size={16}/></Link></Button>
-    <Button variant="outline" asChild><Link href="/settings">Set a daily reminder</Link></Button>
+    <Button asChild><Link href={data.membership.premium ? '/reports' : '/pricing'}>{data.membership.premium ? 'View weekly report' : 'Upgrade to Premium'} <ArrowRight size={16}/></Link></Button>
+    <Button variant="outline" asChild><Link href="/settings#daily-reminders">Set a daily reminder</Link></Button>
    </div>
-  </section>
-  <section className="card feature-card" aria-labelledby="payment-heading">
-   <span className="eyebrow">PAYMENTS</span>
-   <h2 id="payment-heading">Pay now (test)</h2>
-   <p>Continue to Stripe to complete your payment.</p>
-   <Button asChild><a href="https://buy.stripe.com/test_5kQ7sK9kT5n03qhaET1kA01">Continue to checkout <ArrowRight size={16}/></a></Button>
-   <p className="muted"><small>Test mode · No real money is charged.</small></p>
   </section>
   <div className="p-daily-layout"><section className="card m-checkin-card"><span className="m-card-tab">A LITTLE CHECK-IN</span><MoodPicker/></section><GentlePause/></div>
   <div className="m-tiny-stats"><span><BookHeart size={17}/><b>{data.entries.length}</b> diary {data.entries.length===1?'entry':'entries'}</span><span><Heart size={16}/><b>{getStreak(data.moods.map(m=>m.date))}</b> days of checking in</span><Link href="/calendar">My mood calendar <ArrowRight size={14}/></Link></div>
