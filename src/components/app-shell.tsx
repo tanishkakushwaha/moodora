@@ -18,7 +18,7 @@ const navigation = [
   { href: '/calendar', label: 'Calendar', icon: CalendarDays },
   { href: '/partner', label: 'Partner', icon: Heart },
 ];
-const extraLinks = [{ href: '/reports', label: 'Weekly reports' }, { href: '/membership', label: 'Premium membership' }, { href: '/self-care', label: 'Self-care' }, { href: '/quotes', label: 'Quotes' }, { href: '/insights', label: 'Mood trends' }];
+const extraLinks = [{ href: '/reports', label: 'Weekly reports' }, { href: '/membership', label: 'Premium membership' }, { href: '/settings/subscription', label: 'Subscription settings' }, { href: '/self-care', label: 'Self-care' }, { href: '/quotes', label: 'Quotes' }, { href: '/insights', label: 'Mood trends' }];
 
 export function Avatar({ name, image, size = 38 }: { name: string; image?: string | null; size?: number }) {
   const [failed, setFailed] = useState(false);

@@ -10,12 +10,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid signature.' }, { status: 400 });
   }
   try {
-    const event = JSON.parse(body) as { type: string; data: { object: { id: string; customer?: string; subscription?: string } } };
+    const event = JSON.parse(body) as { id: string; type: string; data: { object: { id: string; customer?: string; subscription?: string; parent?: { subscription_details?: { subscription?: string } } } } };
+    if (typeof event.id !== 'string' || !event.id.startsWith('evt_')) return NextResponse.json({ error: 'Invalid event.' }, { status: 400 });
     const object = event.data.object;
-    if (['customer.subscription.created', 'customer.subscription.updated', 'customer.subscription.deleted'].includes(event.type) && object.customer) {
-      await syncSubscription(object.id, object.customer);
+    const receipt = { id: event.id, type: event.type };
+    if (['customer.subscription.created', 'customer.subscription.updated', 'customer.subscription.deleted', 'customer.subscription.paused', 'customer.subscription.resumed'].includes(event.type) && object.customer) {
+      await syncSubscription(object.id, object.customer, receipt);
     } else if (['checkout.session.completed', 'checkout.session.async_payment_succeeded'].includes(event.type) && object.subscription && object.customer) {
-      await syncSubscription(object.subscription, object.customer);
+      await syncSubscription(object.subscription, object.customer, receipt);
+    } else if (['invoice.paid', 'invoice.payment_failed', 'invoice.payment_action_required'].includes(event.type) && object.customer) {
+      const subscriptionId = object.parent?.subscription_details?.subscription || object.subscription;
+      if (subscriptionId) await syncSubscription(subscriptionId, object.customer, receipt);
     }
     return NextResponse.json({ received: true });
   } catch {

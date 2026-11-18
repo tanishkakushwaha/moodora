@@ -34,7 +34,7 @@ export type AppData = {
     moods: MoodRecord[];
     entries: Entry[];
     favorites: string[];
-    membership: { premium: boolean; status: string; currentPeriodEnd: string | null; cancelAtPeriodEnd: boolean; checkoutAvailable: boolean; testMode: boolean; canManage: boolean };
+    membership: { premium: boolean; status: string; currentPeriodEnd: string | null; cancelAtPeriodEnd: boolean; checkoutAvailable: boolean; testMode: boolean; canManage: boolean; planId: string; billingInterval: string | null; amount: string | null };
 };
 const Context = createContext<{
     data: AppData | null;
@@ -43,8 +43,8 @@ const Context = createContext<{
     refresh: () => Promise<void>;
 }>({ data: null, loading: true, error: '', refresh: async () => {
     } });
-export async function request(url: string, method = 'POST', body?: unknown) {
-    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, ...(body !== undefined ? { body: JSON.stringify(body) } : {}) });
+export async function request(url: string, method = 'POST', body?: unknown, signal?: AbortSignal) {
+    const res = await fetch(url, { method, signal, headers: { 'Content-Type': 'application/json' }, ...(body !== undefined ? { body: JSON.stringify(body) } : {}) });
     const json = await res.json();
     if (!res.ok)
         throw new Error(json.error || 'Something went wrong. Try again.');
