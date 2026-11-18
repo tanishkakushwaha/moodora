@@ -16,11 +16,15 @@ export function Dashboard() {
   <div className="page-heading"><div className="p-home-greeting"><span className="eyebrow greeting-date"><Sparkles size={12}/>{new Date().toLocaleDateString('en',{weekday:'long',month:'long',day:'numeric'})}</span><h1>Hello, {data.user.name.split(' ')[0]}! ♡</h1><p>Take a deep breath. This little moment is yours.</p><Kitten/></div></div>
   <div className="p-welcome-row"><section className="p-today"><div><span className="eyebrow">TODAY’S MOOD ♡</span><h2>{feeling?.label || 'How’s your heart?'}</h2><p>{today?.note || (feeling?'A little feeling, gently held.':'Every feeling has a place here.')}</p><Link href="/mood-tracker" className="text-button">{feeling?'Change mood':'Choose a mood'} <ArrowRight size={14}/></Link></div><span className="p-today-emoji" aria-label={feeling?.label || 'A little sunshine'}>{feeling?.emoji || '🌷'}</span><TulipGarden/></section><aside className="p-quote-note"><Heart size={28}/><p>“{quote.text}”</p><span>— {quote.author}</span></aside></div>
   <h2 className="p-actions-heading">Quick actions ✨</h2><nav className="p-quick-actions" aria-label="Quick actions"><Link href="/diary/new"><BookHeart/>Write diary</Link><Link href="/mood-tracker"><Smile/>Track mood</Link><Link href="/self-care"><Heart/>Self-care</Link><Link href="/insights"><ChartNoAxesCombined/>View insights</Link></nav>
-  <section className="card feature-card"><span className="eyebrow">YOUR WEEK, GENTLY HELD</span><h2>Make room for reflection</h2><p>Look back on your week or choose a daily reminder that fits your routine.</p><div className="feature-actions"><Button asChild><Link href="/reports">Weekly mood report <ArrowRight size={16}/></Link></Button><Button variant="outline" asChild><Link href="/settings">Set a daily reminder</Link></Button><Link className="text-button" href="/membership">{data.membership.premium ? 'Manage Premium' : 'Explore Premium'}</Link></div></section>
-  <section className="card" aria-labelledby="payment-heading">
-   <h2 id="payment-heading">Try a payment</h2>
-   <p>This is a test checkout. No real money will be charged.</p>
-   <Button asChild><a href="https://buy.stripe.com/test_5kQ7sK9kT5n03qhaET1kA01">Pay now (test) <ArrowRight size={16}/></a></Button>
+  <section className="card feature-card reflection-overview" aria-labelledby="reflection-heading">
+   <div><span className="eyebrow">YOUR WEEK, GENTLY HELD</span>
+    <h2 id="reflection-heading">Make room for reflection</h2>
+    <p>{data.membership.premium ? 'Your weekly mood report is ready to explore. Take a moment to notice your patterns.' : 'Discover weekly mood reports with Premium, or make time for yourself with a daily reminder.'}</p>
+   </div>
+   <div className="feature-actions">
+    <Button asChild><Link href={data.membership.premium ? '/reports' : '/membership'}>{data.membership.premium ? 'View weekly report' : 'Explore Premium'} <ArrowRight size={16}/></Link></Button>
+    <Button variant="outline" asChild><Link href="/settings">Set a daily reminder</Link></Button>
+   </div>
   </section>
   <div className="p-daily-layout"><section className="card m-checkin-card"><span className="m-card-tab">A LITTLE CHECK-IN</span><MoodPicker/></section><GentlePause/></div>
   <div className="m-tiny-stats"><span><BookHeart size={17}/><b>{data.entries.length}</b> diary {data.entries.length===1?'entry':'entries'}</span><span><Heart size={16}/><b>{getStreak(data.moods.map(m=>m.date))}</b> days of checking in</span><Link href="/calendar">My mood calendar <ArrowRight size={14}/></Link></div>
