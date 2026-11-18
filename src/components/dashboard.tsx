@@ -18,6 +18,20 @@ export function Dashboard() {
   <div className="p-daily-layout"><section className="card m-checkin-card"><span className="m-card-tab">A LITTLE CHECK-IN</span><MoodPicker/></section><GentlePause/></div>
   <div className="m-tiny-stats"><span><BookHeart size={17}/><b>{data.entries.length}</b> diary {data.entries.length===1?'entry':'entries'}</span><span><Heart size={16}/><b>{getStreak(data.moods.map(m=>m.date))}</b> days of checking in</span><Link href="/calendar">My mood calendar <ArrowRight size={14}/></Link></div>
   <section className="p-recent"><div className="section-heading"><h2>My little diary ♡</h2><Link href="/diary" className="text-button">All entries <ArrowRight size={14}/></Link></div>{data.entries.length?<div className="recent-entries">{data.entries.slice(0,2).map(entry=><EntryCard key={entry.id} entry={entry} compact/>)}</div>:<div className="card m-first-page"><BookHeart size={32}/><h3>A page for your thoughts.</h3><p>Your dreams, your little joys, or just anything.</p><Link href="/diary/new" className="text-button">Write my first entry <PenLine size={15}/></Link></div>}</section><WritingPrompt/>
-  <p className="m-dashboard-footer"><Heart size={13}/> Feel · Reflect · Bloom ♡</p>
+ <section className="card">
+  <h2>Try a payment</h2>
+  <p>This is a test payment. No real money will be charged.</p>
+
+  <a
+    href="https://buy.stripe.com/test_5kQ7sK9kT5n03qhaET1kA01"
+    className="button button-primary"
+  >
+    Pay now (test)
+  </a>
+</section>
+
+<p className="m-dashboard-footer">
+  <Heart size={13}/> Feel · Reflect · Bloom ♡
+</p>
  </div>;
 }
