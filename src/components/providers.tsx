@@ -25,12 +25,16 @@ export type Profile = {
     theme: string;
     createdAt: string;
     hasPassword: boolean;
+    reminderEnabled: boolean;
+    reminderTime: string;
+    reminderTimezone: string;
 };
 export type AppData = {
     user: Profile;
     moods: MoodRecord[];
     entries: Entry[];
     favorites: string[];
+    membership: { premium: boolean; status: string; currentPeriodEnd: string | null; cancelAtPeriodEnd: boolean; checkoutAvailable: boolean; testMode: boolean; canManage: boolean };
 };
 const Context = createContext<{
     data: AppData | null;

@@ -9,6 +9,7 @@ import { Brand } from './brand';
 import { Bow } from './moodora-art';
 import { DataBoundary, useApp } from './providers';
 import { PageTransition } from './motion';
+import { DailyReminder } from './reminders';
 
 const navigation = [
   { href: '/dashboard', label: 'Home', icon: Home },
@@ -17,7 +18,7 @@ const navigation = [
   { href: '/calendar', label: 'Calendar', icon: CalendarDays },
   { href: '/partner', label: 'Partner', icon: Heart },
 ];
-const extraLinks = [{ href: '/self-care', label: 'Self-care' }, { href: '/quotes', label: 'Quotes' }, { href: '/insights', label: 'Mood trends' }];
+const extraLinks = [{ href: '/reports', label: 'Weekly reports' }, { href: '/membership', label: 'Premium membership' }, { href: '/self-care', label: 'Self-care' }, { href: '/quotes', label: 'Quotes' }, { href: '/insights', label: 'Mood trends' }];
 
 export function Avatar({ name, image, size = 38 }: { name: string; image?: string | null; size?: number }) {
   const [failed, setFailed] = useState(false);
@@ -67,7 +68,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
       <div className="app-main">
         <header className="app-topbar"><b>{current?.label || (pathname === '/profile' ? 'Profile' : 'Settings')}</b><Link href="/profile" className="simple-private-note" aria-label="View your profile"><Avatar name={data?.user.name || 'You'} image={data?.user.image} size={28}/><span title={data?.user.name} style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{data?.user.name || 'Your profile'}</span></Link></header>
-        <main className="app-content"><DataBoundary><PageTransition>{children}</PageTransition></DataBoundary><footer className="app-footer">Moodora · A little time for yourself.</footer></main>
+        <main className="app-content"><DataBoundary><DailyReminder/><PageTransition>{children}</PageTransition></DataBoundary><footer className="app-footer">Moodora · A little time for yourself.</footer></main>
       </div>
       <nav className="mobile-bottom-nav" aria-label="Quick navigation">{navigation.map(({ href, label, icon: Icon }) => <Link key={href} href={href} aria-current={pathname.startsWith(href) ? 'page' : undefined}><Icon size={21} /><span>{label}</span></Link>)}</nav>
     </div>
