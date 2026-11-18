@@ -24,7 +24,7 @@ export function validPlanPrice(plan: PlanId, price: PriceDetails, env: Environme
   if (price.recurring.interval !== (plan === 'monthly' ? 'month' : 'year')) return false;
   // Preserve existing checkout until the new INR monthly price is configured.
   if (plan === 'monthly' && !env.STRIPE_MONTHLY_PRICE_ID) return true;
-  return price.currency === 'inr' && price.unit_amount === (plan === 'monthly' ? 19900 : 149900);
+  return price.currency === 'usd' && price.unit_amount === (plan === 'monthly' ? 19900 : 149900);
 }
 export function formatPrice(price: Pick<PriceDetails, 'currency' | 'unit_amount'>) {
   if (price.unit_amount === null) return null;
