@@ -1,5 +1,5 @@
 // Public installation settings supplied by the site's Trfyx dashboard.
-export const TRFYX_WEBSITE_ID = 'Wwfhn43v8pg5';
+export const TRFYX_WEBSITE_ID = 'wwfhn43v8pg5';
 export const TRFYX_DOMAIN = 'my-moodora.vercel.app';
 export const ANALYTICS_CHOICE = 'moodora_analytics_consent';
 export type AnalyticsChoice = 'granted' | 'denied';
