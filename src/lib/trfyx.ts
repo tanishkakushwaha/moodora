@@ -4,8 +4,12 @@ export const TRFYX_DOMAIN = 'my-moodora.vercel.app';
 export const ANALYTICS_CHOICE = 'moodora_analytics_consent';
 export type AnalyticsChoice = 'granted' | 'denied';
 type Tracker = ((...args: unknown[]) => void) & { q?: unknown[][] };
+type DeliveryResult = { status?: number };
 type TrackingWindow = Window & { trfyx?: Tracker };
 const sentCheckouts = new Set<string>();
+// Keep concurrent callers together. Unknown delivery remains guarded in this
+// page's memory rather than being falsely persisted as successful delivery.
+const checkoutAttempts = new Map<string, Promise<void>>();
 
 export function cookieValue(cookie: string, name: string): string | undefined {
   const raw = cookie.split(';').map(part => part.trim()).find(part => part.startsWith(`${name}=`))?.slice(name.length + 1);
@@ -19,8 +23,10 @@ export function analyticsChoice(): AnalyticsChoice | null {
 }
 
 export function analyticsAllowed() {
-  if (typeof window === 'undefined' || window.location.hostname !== TRFYX_DOMAIN || analyticsChoice() !== 'granted') return false;
-  try { return window.localStorage.getItem('df_ignore') !== 'true'; } catch { return true; }
+  try {
+    if (typeof window === 'undefined' || window.location.hostname !== TRFYX_DOMAIN || analyticsChoice() !== 'granted') return false;
+    try { return window.localStorage.getItem('df_ignore') !== 'true'; } catch { return true; }
+  } catch { return false; }
 }
 
 export function saveAnalyticsChoice(choice: AnalyticsChoice) {
@@ -30,7 +36,7 @@ export function saveAnalyticsChoice(choice: AnalyticsChoice) {
 
 // Queue documented custom events while the official deferred script is loading.
 // Tracking must never stop sign-in or payment navigation.
-function send(name: string, properties: Record<string, string>, callback?: () => void) {
+function send(name: string, properties: Record<string, string>, callback?: (result?: DeliveryResult) => void) {
   try {
     if (!analyticsAllowed()) return false;
     const target = window as TrackingWindow;
@@ -51,15 +57,33 @@ export async function trackCheckoutStarted(sessionId: unknown, plan: string) {
   const key = `moodora:checkout-started:${sessionId}`;
   if (sentCheckouts.has(key)) return;
   try { if (window.localStorage.getItem(key)) return; } catch { /* Use the in-memory fallback. */ }
-  await new Promise<void>(resolve => {
-    // Give the documented request callback time to finish before leaving the site.
-    // A blocked tracker must never leave the customer waiting indefinitely.
-    const timeout = setTimeout(resolve, 700);
-    const done = () => { clearTimeout(timeout); resolve(); };
-    if (!send('checkout_started', { plan: 'premium', billing: plan }, done)) { done(); return; }
-    sentCheckouts.add(key);
-    try { window.localStorage.setItem(key, '1'); } catch { /* Checkout remains usable without storage. */ }
-  });
+  const previousAttempt = checkoutAttempts.get(key);
+  if (previousAttempt) return previousAttempt;
+  let resolveAttempt!: () => void;
+  const attempt = new Promise<void>(resolve => { resolveAttempt = resolve; });
+  checkoutAttempts.set(key, attempt);
+  // Give the documented callback time to finish before leaving the site.
+  // A timeout is uncertain delivery, so never label it as accepted or blindly
+  // send again from this page. A later callback can still settle its state.
+  const timeout = setTimeout(resolveAttempt, 700);
+  const done = (result?: DeliveryResult) => {
+    if (result?.status === 200 || result?.status === 202) {
+      sentCheckouts.add(key);
+      try { window.localStorage.setItem(key, '1'); } catch { /* Use memory if storage is unavailable. */ }
+      checkoutAttempts.delete(key);
+    } else if (typeof result?.status === 'number' && result.status >= 400) {
+      // An explicitly rejected delivery must not prevent a later user retry.
+      checkoutAttempts.delete(key);
+    }
+    clearTimeout(timeout);
+    resolveAttempt();
+  };
+  if (!send('checkout_started', { plan: 'premium', billing: plan }, done)) {
+    checkoutAttempts.delete(key);
+    clearTimeout(timeout);
+    resolveAttempt();
+  }
+  return attempt;
 }
 
 // Optional attribution only. Neither this cookie nor an analytics event grants Premium.
