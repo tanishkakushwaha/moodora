@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { APP_NAME } from '@/lib/branding';
 import { ThemeProvider } from '@/components/providers';
+import { TrfyxAnalytics } from '@/components/trfyx-analytics';
 import './globals.css';
 import './moodora.css';
 import './couples.css';
@@ -13,5 +14,6 @@ export default function RootLayout({ children }: {
     return <html lang="en" suppressHydrationWarning><body>
     <a className="skip-link" href="#main-content">Skip to content</a>
     <ThemeProvider>{children}</ThemeProvider>
+    <TrfyxAnalytics />
   </body></html>;
 }

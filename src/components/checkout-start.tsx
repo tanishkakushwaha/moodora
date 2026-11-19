@@ -5,12 +5,13 @@ import { Brand } from './brand';
 import { Button } from './ui/button';
 import { request } from './providers';
 import type { PublicPlan } from '@/lib/plans';
+import { trackCheckoutStarted } from '@/lib/trfyx';
 export function CheckoutStart({ plan, testMode }: { plan: PublicPlan; testMode: boolean }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   async function open(signal?: AbortSignal) {
     setBusy(true); setError('');
-    try { const result = await request('/api/billing/checkout', 'POST', { plan: plan.id }, signal); if (!signal?.aborted) window.location.assign(result.url); }
+    try { const result = await request('/api/billing/checkout', 'POST', { plan: plan.id }, signal); if (!signal?.aborted) { await trackCheckoutStarted(result.sessionId, plan.id); if (!signal?.aborted) window.location.assign(result.url); } }
     catch (error) { if (!signal?.aborted) { setError(error instanceof Error ? error.message : 'Checkout could not open.'); setBusy(false); } }
   }
   useEffect(() => {

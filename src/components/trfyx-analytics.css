@@ -1,0 +1,3 @@
+.analytics-choice{position:fixed;z-index:80;bottom:16px;left:16px;right:16px;max-width:880px;margin:0 auto;padding:18px 22px;border:1px solid #e8c4ef;border-radius:20px;background:#fff8ff;color:#704179;box-shadow:0 8px 32px #70417922;display:flex;align-items:center;gap:20px;font-size:14px}
+.analytics-choice p{margin:0;line-height:1.6}.analytics-choice a{text-decoration:underline}.analytics-choice>div,.analytics-settings-actions{display:flex;gap:10px;flex-wrap:wrap}.analytics-choice button{white-space:nowrap;min-height:44px}.analytics-settings-actions button{min-height:44px}
+@media(max-width:640px){.analytics-choice{flex-direction:column;align-items:stretch;padding:16px;gap:12px}.analytics-choice>div{justify-content:flex-end}}

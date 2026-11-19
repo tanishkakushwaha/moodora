@@ -5,6 +5,7 @@ import { Crown, Check, ArrowRight, RefreshCw } from 'lucide-react';
 import { Button } from './ui/button';
 import { useApp, request } from './providers';
 import { type PlanCatalog, type PlanId } from '@/lib/plans';
+import { trackCheckoutStarted } from '@/lib/trfyx';
 
 export function MembershipPage({ catalog, settings = false }: { catalog: PlanCatalog; settings?: boolean }) {
   const { data, refresh } = useApp();
@@ -28,7 +29,7 @@ export function MembershipPage({ catalog, settings = false }: { catalog: PlanCat
   }, [refresh]);
   async function openBilling(action: 'checkout' | 'portal') {
     setBusy(action); setError('');
-    try { const result = await request(`/api/billing/${action}`, 'POST', action === 'checkout' ? { plan } : {}); window.location.assign(result.url); }
+    try { const result = await request(`/api/billing/${action}`, 'POST', action === 'checkout' ? { plan } : {}); if (action === 'checkout') await trackCheckoutStarted(result.sessionId, plan); window.location.assign(result.url); }
     catch (error) { setError(error instanceof Error ? error.message : 'Could not open billing.'); setBusy(''); }
   }
   if (!data) return null;

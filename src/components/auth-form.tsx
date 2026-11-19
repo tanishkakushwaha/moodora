@@ -14,6 +14,7 @@ import { Brand } from './brand';
 import { Bow, JournalArt } from './moodora-art';
 import { request } from './providers';
 import { safeAuthDestination } from '@/lib/plans';
+import { trackSignupCompleted } from '@/lib/trfyx';
 
 type AuthFields = { name: string; email: string; password: string };
 
@@ -44,7 +45,10 @@ export function AuthPage({ signup = false, google = false, next = '/dashboard' }
   async function submit(values: AuthFields) {
     setServerError('');
     try {
-      if (signup) await request('/api/register', 'POST', values);
+      if (signup) {
+        await request('/api/register', 'POST', values);
+        trackSignupCompleted();
+      }
       const result = await signIn('credentials', {
         email: values.email, password: values.password, redirect: false,
       });
