@@ -29,6 +29,8 @@ npm run dev -- --hostname 127.0.0.1 --port 3100
 
 Open `http://localhost:3100`. Setup generates a new ignored local `.env`, a fresh auth secret and dedicated testing database credentials. The new PostgreSQL cluster lives inside this checkout's `.data` and listens on `55440`. The original local cluster on `55439` is not reused or stopped.
 
+If a previous interrupted setup left PostgreSQL using its default port 5432, the testing script now restores its own port 55440 before startup. Retry testing:setup; do not stop another database server or delete the cluster.
+
 If setup shows `EPERM`, it was unable to start a process/socket in the restricted terminal. Run it in the normal Linux terminal; do not replace the test URL with a production URL to get past the error. Never run database commands from the original main folder for this setup.
 
 `npm run test:integration` starts its own local app on a free port in 3100–3110. It never probes/reuses the original app on 3000. Its smoke checks create temporary local test users and clean up only those users. It rejects hosted database connections and enabled Stripe credentials for this automated run. Hosted Stripe/browser tests are manual and separate.

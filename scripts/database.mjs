@@ -5,6 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { config } from 'dotenv';
 import { applyTestingEnvironment } from './lib/testing-environment.mjs';
+import { testingPostgresConfiguration } from './lib/testing-postgres-config.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 config({ path: resolve(root, '.env'), quiet: true });
@@ -48,8 +49,13 @@ try {
     } finally {
       unlinkSync(passwordFile);
     }
-    writeFileSync(resolve(data, 'postgresql.auto.conf'), "listen_addresses = '127.0.0.1'\nport = 55440\nunix_socket_directories = '/tmp'\n");
   }
+
+  // PG_VERSION can already exist after an interrupted initialization. Restore
+  // the managed test-only settings even when initdb does not need to run again.
+  const settingsPath = resolve(data, 'postgresql.auto.conf');
+  const previousSettings = existsSync(settingsPath) ? readFileSync(settingsPath, 'utf8') : '';
+  writeFileSync(settingsPath, testingPostgresConfiguration(previousSettings), { mode: 0o600 });
 
   const status = spawnSync(resolve(bin, 'pg_ctl'), ['-D', data, 'status'], { encoding: 'utf8' });
   if (status.status !== 0) console.log(run(resolve(bin, 'pg_ctl'), ['-D', data, '-l', log, '-w', 'start']));

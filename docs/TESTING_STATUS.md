@@ -15,7 +15,7 @@ Date: 23 November 2026. Status: locally prepared; remote deployment and hosted e
 | Check | Result | Limit |
 | --- | --- | --- |
 | Fresh dependency installation | Pass: `npm ci --offline --ignore-scripts --no-audit --no-fund`, 258 packages | Versions unchanged; security-advisory audit not performed |
-| Unit/regression/analytics/isolation suite | 74 cases: 72 passed, 0 failed, 2 skipped for nested-process restrictions | Corresponding CLI guards also checked directly; unit tests do not establish live provider correctness |
+| Unit/regression/analytics/isolation suite | 77 cases: 75 passed, 0 failed, 2 skipped for nested-process restrictions | Corresponding CLI guards also checked directly; unit tests do not establish live provider correctness |
 | TypeScript | Pass: `npm run typecheck` | Compile-time validation |
 | Next.js optimized build | Pass: `npm run build` | No database or external-provider lifecycle exercised |
 | Offline event delivery acceptance | Pass: two attempts, one accepted event, no false sent marker after failure | Simulated browser/collector; no real requests |
@@ -69,3 +69,13 @@ The complete testing snapshot was committed locally as 5360719 on branch testing
 After enabling GitHub access in a normal terminal, push from this testing folder using npm run push:testing. Do not push main or force overwrite a divergent remote testing branch. Commit IDs printed by git log show subsequent documentation updates as separate testing-only commits.
 
 Local manual testing can start independently: npm run testing:setup, then npm run dev -- --hostname 127.0.0.1 --port 3100, then open http://localhost:3100. Database initialization must first work in an unrestricted terminal; the observed EPERM failures here are not a passing end-to-end result.
+
+## Testing PostgreSQL startup repair
+
+The owner's normal-terminal setup found an initialized PG_VERSION=16 cluster whose postgresql.auto.conf contained only default comments. PostgreSQL therefore tried port 5432 and failed because it was occupied. The testing setup script had written the intended port only immediately after a first initdb; a retry against an already initialized folder could skip that write. This is a confirmed testing-setup recovery bug, not a reason to stop the unrelated server on 5432.
+
+Fix on testing only: scripts/lib/testing-postgres-config.mjs restores loopback/55440/testing socket settings on every setup attempt, preserving unrelated settings and normalizing duplicate old settings. scripts/database.mjs uses this helper outside the first-init block. No cluster files were deleted and no existing server was stopped.
+
+Verification: three new regression cases passed (default initialized config, replacing old/conflicting network settings while preserving unrelated values, repeated-setup idempotence). After repairing only the stopped testing cluster's configuration, PostgreSQL itself reported port 55440 through postgres -D <testing-data> -C port. This is a read-only config check; successful server startup, migration and live integration still require the owner's subsequent normal-terminal run. No production database or main checkout was changed.
+
+Port-repair regression result: npm test completed with 77 cases, 75 passed, no failures, and the same two restricted CLI-process checks skipped. Main ref/status/tracked files were checked unchanged before the testing-only port-repair commit.
