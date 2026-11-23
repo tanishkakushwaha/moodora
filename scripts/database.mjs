@@ -4,9 +4,11 @@ import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { config } from 'dotenv';
+import { applyTestingEnvironment } from './lib/testing-environment.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 config({ path: resolve(root, '.env'), quiet: true });
+applyTestingEnvironment();
 const data = resolve(root, '.data/postgres');
 const log = resolve(root, '.data/postgres.log');
 const bin = process.env.POSTGRES_BIN || '/usr/lib/postgresql/16/bin';
@@ -24,7 +26,7 @@ try {
   if (!['start', 'stop'].includes(mode)) throw new Error('Use db:start or db:stop.');
   if (mode === 'start' && !process.env.DATABASE_URL) throw new Error('DATABASE_URL is missing. Run npm run setup.');
   const url = process.env.DATABASE_URL ? new URL(process.env.DATABASE_URL) : null;
-  if (mode === 'start' && (!['localhost', '127.0.0.1'].includes(url.hostname) || url.port !== '55439')) {
+  if (mode === 'start' && (!['localhost', '127.0.0.1'].includes(url.hostname) || url.port !== '55440')) {
     console.log('Using your configured PostgreSQL service. Local cluster startup skipped.');
     process.exit(0);
   }
@@ -46,7 +48,7 @@ try {
     } finally {
       unlinkSync(passwordFile);
     }
-    writeFileSync(resolve(data, 'postgresql.auto.conf'), "listen_addresses = '127.0.0.1'\nport = 55439\nunix_socket_directories = '/tmp'\n");
+    writeFileSync(resolve(data, 'postgresql.auto.conf'), "listen_addresses = '127.0.0.1'\nport = 55440\nunix_socket_directories = '/tmp'\n");
   }
 
   const status = spawnSync(resolve(bin, 'pg_ctl'), ['-D', data, 'status'], { encoding: 'utf8' });
@@ -64,11 +66,11 @@ try {
   ].join('\n');
   // Peer-authenticated cluster owner provisions the dedicated application role.
   // The password travels through stdin and the child environment, never argv.
-  run(resolve(bin, 'psql'), ['-h', '/tmp', '-p', '55439', '-d', 'postgres', '-v', 'ON_ERROR_STOP=1'], { input: sql });
-  run(resolve(bin, 'psql'), ['-h', '127.0.0.1', '-p', '55439', '-U', user, '-d', database, '-v', 'ON_ERROR_STOP=1', '-c', 'SELECT 1;'], {
+  run(resolve(bin, 'psql'), ['-h', '/tmp', '-p', '55440', '-d', 'postgres', '-v', 'ON_ERROR_STOP=1'], { input: sql });
+  run(resolve(bin, 'psql'), ['-h', '127.0.0.1', '-p', '55440', '-U', user, '-d', database, '-v', 'ON_ERROR_STOP=1', '-c', 'SELECT 1;'], {
     env: { ...process.env, PGPASSWORD: password, PGCONNECT_TIMEOUT: '5' },
   });
-  console.log('PostgreSQL is ready and the application credentials work on 127.0.0.1:55439.');
+  console.log('PostgreSQL is ready and the application credentials work on 127.0.0.1:55440.');
 } catch (error) {
   console.error(`Database setup: ${error.message}`);
   if (existsSync(log)) console.error(readFileSync(log, 'utf8').split('\n').slice(-12).join('\n'));

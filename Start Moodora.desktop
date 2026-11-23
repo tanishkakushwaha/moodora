@@ -2,8 +2,8 @@
 Type=Application
 Name=Start Moodora
 Comment=Start your private Mood & Dairy journaling application
-Exec=bash "/home/tanishka/Desktop/My Moodora/scripts/launch.sh"
-Path=/home/tanishka/Desktop/My Moodora
+Exec=bash "/home/tanishka/Desktop/Moodora-testing/scripts/launch.sh"
+Path=/home/tanishka/Desktop/Moodora-testing
 Terminal=true
 Icon=accessories-text-editor
 Categories=Utility;

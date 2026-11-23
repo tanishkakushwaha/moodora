@@ -20,7 +20,7 @@ export function trustedOrigins(requestUrl: string, env: DeploymentEnvironment = 
   if (env.VERCEL_ENV === 'production' && env.VERCEL_PROJECT_PRODUCTION_URL) {
     origins.add(originOf(`https://${env.VERCEL_PROJECT_PRODUCTION_URL}`));
   }
-  return [...origins];
+  return [...origins].filter(origin => new URL(origin).hostname !== 'my-moodora.vercel.app');
 }
 
 export function usesSecureCookies(env: DeploymentEnvironment = process.env): boolean {

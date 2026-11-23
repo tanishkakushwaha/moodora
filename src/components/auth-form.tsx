@@ -13,6 +13,8 @@ import { Input } from './ui/input';
 import { Brand } from './brand';
 import { Bow, JournalArt } from './moodora-art';
 import { request } from './providers';
+import { safeAuthDestination } from '@/lib/plans';
+import { trackSignupCompleted } from '@/lib/trfyx';
 
 type AuthFields = { name: string; email: string; password: string };
 
@@ -21,7 +23,9 @@ function FieldError({ id, message }: { id: string; message?: string }) {
   return <span id={id} className="field-error" role="alert">{message}</span>;
 }
 
-export function AuthPage({ signup = false, google = false }: { signup?: boolean; google?: boolean }) {
+export function AuthPage({ signup = false, google = false, next = '/dashboard' }: { signup?: boolean; google?: boolean; next?: string }) {
+  const destination = safeAuthDestination(next);
+  const authQuery = destination === '/dashboard' ? '' : `?next=${encodeURIComponent(destination)}`;
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState('');
@@ -41,7 +45,10 @@ export function AuthPage({ signup = false, google = false }: { signup?: boolean;
   async function submit(values: AuthFields) {
     setServerError('');
     try {
-      if (signup) await request('/api/register', 'POST', values);
+      if (signup) {
+        await request('/api/register', 'POST', values);
+        trackSignupCompleted();
+      }
       const result = await signIn('credentials', {
         email: values.email, password: values.password, redirect: false,
       });
@@ -51,7 +58,7 @@ export function AuthPage({ signup = false, google = false }: { signup?: boolean;
           : 'We couldn’t log you in. Check your details, or wait a little if you’ve tried several times.');
         return;
       }
-      router.push('/dashboard');
+      router.push(destination);
       router.refresh();
     } catch (error) {
       setServerError(error instanceof Error ? error.message : 'We couldn’t connect. Please try again.');
@@ -77,7 +84,7 @@ export function AuthPage({ signup = false, google = false }: { signup?: boolean;
           <h1>{signup ? 'Your little space awaits.' : 'Welcome home.'}</h1>
           <p>{signup ? 'A little more self-care. A little more you.' : 'Take a breath. Make yourself at home.'}</p>
           {google && <>
-            <Button className="w-full google-button" variant="outline" disabled={isSubmitting} onClick={() => void signIn('google', { callbackUrl: '/dashboard' })}>
+            <Button className="w-full google-button" variant="outline" disabled={isSubmitting} onClick={() => void signIn('google', { callbackUrl: destination })}>
               <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
                 <path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.5-.2-2.2H12v4.2h5.4a4.6 4.6 0 0 1-2 3v2.5h3.3c2-1.8 2.9-4.4 2.9-7.5Z" />
                 <path fill="#34A853" d="M12 22c2.7 0 5-1 6.7-2.5L15.4 17c-.9.6-2 .9-3.4.9-2.6 0-4.8-1.8-5.6-4.1H3V16a10 10 0 0 0 9 6Z" />
@@ -115,7 +122,7 @@ export function AuthPage({ signup = false, google = false }: { signup?: boolean;
               {isSubmitting ? <><LoaderCircle className="spin" size={17} /><span>{signup ? 'Creating your space…' : 'Signing in…'}</span></> : <>{signup ? 'Create my cozy corner' : 'Log in to my space'} <ArrowRight size={16} /></>}
             </Button>
           </form>
-          <p className="auth-switch">{signup ? 'Already have a little space here?' : 'New to Moodora?'} <Link href={signup ? '/login' : '/signup'}>{signup ? 'Log in' : 'Start your journey'}</Link></p>
+          <p className="auth-switch">{signup ? 'Already have a little space here?' : 'New to Moodora?'} <Link href={`${signup ? '/login' : '/signup'}${authQuery}`}>{signup ? 'Log in' : 'Start your journey'}</Link></p>
           <div className="auth-security"><ShieldCheck size={15} /> A private space. Just for you.</div>
           {signup && <p className="auth-legal">By joining, you agree to our <Link href="/terms">Terms</Link> and <Link href="/privacy">Privacy Policy</Link>.</p>}
         </div>

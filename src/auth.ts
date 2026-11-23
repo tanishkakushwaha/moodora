@@ -1,3 +1,4 @@
+import '@/lib/testing-runtime';
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
@@ -8,7 +9,8 @@ import { rateLimit } from '@/lib/rate-limit';
 import { usesSecureCookies } from '@/lib/deployment';
 const secureSession = usesSecureCookies();
 export const { handlers, auth, signIn, signOut } = NextAuth({
-    cookies: { sessionToken: { name: `${secureSession ? '__Secure-' : ''}bloom.session-token`, options: { httpOnly: true, sameSite: 'lax', path: '/', secure: secureSession } } },
+    secret: process.env.AUTH_SECRET,
+    cookies: { sessionToken: { name: `${secureSession ? '__Secure-' : ''}moodora-testing.session-token`, options: { httpOnly: true, sameSite: 'lax', path: '/', secure: secureSession } } },
     session: { strategy: 'jwt', maxAge: 60 * 60 * 24 * 7 },
     pages: { signIn: '/login' },
     providers: [Credentials({ credentials: { email: { type: 'email' }, password: { type: 'password' } }, async authorize(credentials) {

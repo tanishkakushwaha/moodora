@@ -7,11 +7,13 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { config } from 'dotenv';
 import pg from 'pg';
+import { applyTestingEnvironment } from './lib/testing-environment.mjs';
 import { assertLoginRedirect } from './lib/redirect.mjs';
 import { localEndpoint, describeFetchError } from './lib/local-server.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 config({ path: resolve(root, '.env'), quiet: true });
+applyTestingEnvironment();
 const origin = process.env.BLOOM_SMOKE_ORIGIN || 'http://localhost:3000';
 const endpoint = localEndpoint(origin);
 const interruption = new AbortController();
@@ -83,6 +85,17 @@ try {
   const health = await anonymous('/api/health');
   assert.equal(health.status, 200, 'The database must be healthy');
   assert.equal(health.data.app, 'bloom-mood-diary', 'This port must belong to Moodora');
+  assert.equal(health.data.environment, 'testing', 'The server must identify itself as the isolated testing app');
+  for (const path of ['/', '/pricing', '/login', '/signup', '/privacy', '/terms', '/robots.txt']) {
+    assert.equal((await anonymous(path)).status, 200, `Public page ${path} must load`);
+  }
+  for (const path of ['/account', '/reports', '/membership', '/settings/subscription', '/diary', '/calendar']) {
+    assertLoginRedirect(await anonymous(path), origin);
+  }
+  assert.equal((await anonymous('/api/reports/weekly')).status, 401);
+  for (const path of ['/api/billing/checkout', '/api/billing/portal']) {
+    assert.equal((await anonymous(path, { method: 'POST', json: {} })).status, 401);
+  }
   assert.equal((await anonymous('/api/data')).status, 401, 'Private records require authentication');
   const dashboard = await anonymous('/dashboard');
   assertLoginRedirect(dashboard, origin);
@@ -93,6 +106,18 @@ try {
     assert.equal(signup.status, 201, 'Account signup must succeed');
     await login(agent, emails[index], password);
   }
+  assert.equal((await anonymous('/api/register', { method: 'POST', json: { name: 'Repeated', email: emails[0], password } })).status, 400, 'Duplicate email signup must be rejected');
+  assert.equal((await anonymous('/api/register', { method: 'POST', json: { name: '', email: 'invalid', password: 'short' } })).status, 400, 'Invalid signup must be rejected');
+  for (const path of ['/dashboard', '/account', '/mood-tracker', '/diary', '/calendar', '/partner', '/quotes', '/self-care', '/insights', '/reports', '/membership', '/settings', '/settings/subscription', '/profile']) {
+    assert.equal((await a(path)).status, 200, `Authenticated page ${path} must load`);
+  }
+  assert.equal((await a('/api/reports/weekly')).status, 403, 'Free users cannot call Premium reports directly');
+  assert.equal((await a('/api/billing/portal', { method: 'POST', json: {} })).status, 404, 'New user has no Stripe customer');
+  assert.equal((await a('/api/reminders', { method: 'PUT', json: { enabled: true, time: '09:30', timezone: 'Asia/Kolkata' } })).status, 200);
+  const reminderData = await a('/api/data');
+  assert.equal(reminderData.data.user.reminderTime, '09:30');
+  assert.equal(reminderData.data.user.reminderTimezone, 'Asia/Kolkata');
+  assert.equal((await a('/api/reminders', { method: 'PUT', json: { enabled: true, time: '25:99', timezone: 'invalid-zone' } })).status, 400);
   console.log('✓ Signup, credentials login, sessions, and protected routes');
 
   const today = new Date().toISOString().slice(0, 10);
@@ -178,4 +203,4 @@ try {
   process.off('SIGINT', interrupt);
   process.off('SIGTERM', interrupt);
 }
-if (passed) console.log('\nAll live integration checks passed. Your own account data was not modified.\n');
+if (passed) console.log('\nAll isolated local HTTP/database checks passed. No production account data was used.\n');

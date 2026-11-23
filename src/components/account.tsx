@@ -8,6 +8,7 @@ import { Input } from './ui/input';
 import { Avatar } from './app-shell';
 import { useApp, request, notifyError, setTheme } from './providers';
 import { profileSchema, passwordChangeSchema } from '@/lib/validation';
+import { ReminderSettings } from './reminders';
 export { AuthPage } from './auth-form';
 export function ProfilePage() {
     const { data, refresh } = useApp();
@@ -156,6 +157,7 @@ export function SettingsPage() {
         </span>
       </button>)}</div>
   </section>
+  <ReminderSettings/>
   <section className="card">
     <h2><LockKeyhole size={20}/> Keep your space safe</h2>
     <p className="muted">{data?.user.hasPassword ? 'Update your password. You’ll be asked to log in again on all devices.' : 'You sign in with Google. Manage your password in your Google account.'}</p>

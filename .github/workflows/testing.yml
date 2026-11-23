@@ -1,0 +1,44 @@
+name: Moodora testing branch
+on:
+  push:
+    branches: [testing]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-checks:
+    if: github.ref == 'refs/heads/testing'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: moodora_testing
+          POSTGRES_USER: testing_user
+          POSTGRES_PASSWORD: disposable-ci-fixture
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TESTING_DATABASE_URL: postgresql://testing_user:disposable-ci-fixture@127.0.0.1:5432/moodora_testing
+      TESTING_AUTH_URL: http://localhost:3100
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Generate disposable authentication secret
+        run: echo "TESTING_AUTH_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+      - run: npm ci --no-audit --no-fund
+      - run: npm run check:testing
+      - run: npm test
+      - run: npm run typecheck
+      - run: npm run db:deploy
+      - run: npm run build
+      - run: npm run test:integration
