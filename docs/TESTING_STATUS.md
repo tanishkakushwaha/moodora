@@ -21,8 +21,8 @@ Date: 23 November 2026. Status: locally prepared; remote deployment and hosted e
 | Offline event delivery acceptance | Pass: two attempts, one accepted event, no false sent marker after failure | Simulated browser/collector; no real requests |
 | Actual build safety command | Pass: with testing DB/auth values empty, build exits 1 with sanitized configuration errors before Prisma/migrations | Invoked directly because nested Node subprocesses are restricted |
 | Actual push safety command | Pass: from a disposable temporary Git main checkout, helper exits 1 with Refusing to push | No remote contacted; original main checkout not used |
-| Local testing database setup | Blocked: initdb EPERM | No database initialized or migrated; original local cluster not used |
-| Local HTTP/database integration | Blocked: listen EPERM on 127.0.0.1:3100 | Enhanced smoke cases were written but not executed |
+| Local testing database setup | Passed in owner normal-terminal run after testing-port repair | moodora_testing on 127.0.0.1:55440; four migrations up to date; initial restricted-terminal EPERM retained as historical environment limitation |
+| Local HTTP/database integration | Passed in owner normal-terminal run; full success log supplied | Temporary users cleaned up; browser and external-provider checks remain separate |
 | Browser/mobile/accessibility flows | Not run here | Follow MANUAL_TESTING.md after a separate test deployment is ready |
 | Google/Stripe/TRFYX testing integration | Not configured/verified | Requires separate test credentials; currently disabled rather than reusing production |
 | GitHub Actions workflow | Added for testing branch only; not executed remotely | Needs remote push and Actions access |
@@ -79,3 +79,15 @@ Fix on testing only: scripts/lib/testing-postgres-config.mjs restores loopback/5
 Verification: three new regression cases passed (default initialized config, replacing old/conflicting network settings while preserving unrelated values, repeated-setup idempotence). After repairing only the stopped testing cluster's configuration, PostgreSQL itself reported port 55440 through postgres -D <testing-data> -C port. This is a read-only config check; successful server startup, migration and live integration still require the owner's subsequent normal-terminal run. No production database or main checkout was changed.
 
 Port-repair regression result: npm test completed with 77 cases, 75 passed, no failures, and the same two restricted CLI-process checks skipped. Main ref/status/tracked files were checked unchanged before the testing-only port-repair commit.
+
+## Owner-confirmed local HTTP and database integration pass
+
+After the testing-port repair, the owner supplied a successful npm run testing:setup log. PostgreSQL reported 127.0.0.1:55440, database moodora_testing, four migrations found and no pending migrations. The owner then ran npm run test:integration from the testing checkout and supplied the complete success output.
+
+The isolated temporary app started on port 3100. Reported passing groups: signup/credentials login/sessions/protected routes; diary CRUD and account isolation; daily mood upsert/privacy/validation/origin checks; couple invitations/expiry/consent/sharing/owner isolation/unsharing/disconnect; quote favorites/profile/theme; deletion/password change/session invalidation/logout. The runner reported temporary test accounts and records removed and All isolated local HTTP/database checks passed. Additional assertions in the executed runner cover public/authenticated page responses, duplicate and invalid signup rejection, Free report API denial, billing authentication/no-customer behavior, and reminder persistence/validation. These are HTTP/database assertions, not a browser-button or external-payment test.
+
+An Auth.js CredentialsSignin log appeared during the deliberate rejected-old-password case after a password change. The source calls login(a, emails[0], password, false), asserts old credentials are rejected, and then logs in with the new password. The reported suite subsequently passed. This expected negative-path log is not an authentication defect and was not suppressed. A similar error on an unintended valid login would require separate investigation.
+
+The integration runner stops its owned temporary Next.js server in finally. For manual browser testing, start npm run dev -- --hostname 127.0.0.1 --port 3100 and open http://localhost:3100, retaining the testing banner and using only QA accounts. No production account data or production database was used by this local suite.
+
+Remaining: browser/mobile/form interactions, optional Google/Stripe/TRFYX test integrations, full provider lifecycle and attribution cases, GitHub push, separate Vercel project configuration and authorized custom-domain deployment. The domain testing.trfyx.com is not yet proven owned, configured or live.
