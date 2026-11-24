@@ -22,7 +22,7 @@ export function TrfyxAnalytics() {
     <div><button type="button" className="button button-outline" onClick={() => saveAnalyticsChoice('denied')}>Not now</button><button type="button" className="button" onClick={() => saveAnalyticsChoice('granted')}>Allow analytics</button></div>
   </aside>;
   if (choice !== 'granted') return null;
-  return <Script id="moodora-trfyx" src="https://app.trfyx.com/script.js" strategy="afterInteractive"
+  return <Script id="moodora-trfyx" src="https://testing.trfyx.com/script.js" strategy="afterInteractive"
     data-website-id={TRFYX_WEBSITE_ID} data-domain={TRFYX_DOMAIN}
     data-disable-replay="true" data-disable-heatmaps="true" data-disable-form-tracking="true"
     data-disable-file-downloads="true" data-replay-mask-all-text="true" />;
